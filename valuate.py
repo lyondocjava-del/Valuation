@@ -14,7 +14,9 @@ import argparse
 from tabulate import tabulate
 
 from gold_valuation import (
+    assess,
     fetch_market_data,
+    implied_price_at_fair,
     load_company,
     load_published,
     navps_sensitivity,
@@ -22,6 +24,20 @@ from gold_valuation import (
     value_company,
     value_published,
 )
+
+FAIR_PNAV = 0.6  # developer-stage fair P/NAV used for the verdict
+
+
+def print_verdict(price, navps, p_nav, ev_per_oz, fair_pnav=FAIR_PNAV):
+    v = assess(price, navps, p_nav, ev_per_oz, fair_pnav=fair_pnav)
+    print("\n-- Valuation verdict --")
+    print(f" VERDICT: {v.label}")
+    for r in v.rationale:
+        print(f"   - {r}")
+    fair = implied_price_at_fair(navps, fair_pnav)
+    if fair is not None and price:
+        print(f"   - Implied price at fair {fair_pnav:.2f}x NAV: ${fair:,.2f} "
+              f"(vs ${price:,.2f} today).")
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,6 +124,8 @@ def run_published(args) -> None:
     print("\n-- Company summary --")
     print(tabulate(summ, headers=["Metric", "Value"], tablefmt="github"))
 
+    print_verdict(market.share_price, result.navps, result.p_nav, None)
+
     if args.p_nav is not None and result.navps is not None:
         print(f"\n Implied price @ {args.p_nav:.2f}x P/NAV: ${result.navps*args.p_nav:,.2f}")
 
@@ -157,6 +175,8 @@ def main() -> None:
     print("\n-- Company summary --")
     print(tabulate(result.summary_rows(), headers=["Metric", "Value"],
                    tablefmt="github"))
+
+    print_verdict(market.share_price, result.navps, result.p_nav, result.ev_per_oz)
 
     if args.p_nav is not None and result.navps is not None:
         implied = result.navps * args.p_nav

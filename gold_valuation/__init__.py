@@ -18,6 +18,7 @@ from .published import (
     published_gold_sensitivity,
     value_published,
 )
+from .verdict import Verdict, assess, implied_price_at_fair
 
 __all__ = [
     "MarketData",
@@ -34,4 +35,7 @@ __all__ = [
     "load_published",
     "value_published",
     "published_gold_sensitivity",
+    "Verdict",
+    "assess",
+    "implied_price_at_fair",
 ]

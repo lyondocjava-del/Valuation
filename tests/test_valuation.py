@@ -77,6 +77,21 @@ def test_portfolio_and_asset_irr_present():
     assert res.asset_values[0].irr is not None
 
 
+def test_verdict_labels():
+    from gold_valuation.verdict import assess
+
+    cheap = assess(price=1.0, navps=5.0, p_nav=0.2, ev_per_oz=40)
+    assert "Undervalued" in cheap.label
+    assert cheap.upside_pct is not None and cheap.upside_pct > 0
+
+    rich = assess(price=10.0, navps=5.0, p_nav=2.0, ev_per_oz=300)
+    assert "Overvalued" in rich.label
+    assert rich.upside_pct < 0
+
+    fair = assess(price=5.0, navps=5.0, p_nav=1.0, ev_per_oz=100)
+    assert fair.label == "Fairly valued"
+
+
 def test_published_interpolation_and_bridge():
     from gold_valuation.published import PublishedAsset, PublishedCompany, value_published
 
