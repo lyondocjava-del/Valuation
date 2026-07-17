@@ -58,3 +58,22 @@ def test_missing_shares_gives_no_navps():
     m.shares_outstanding = None
     res = value_company(c, m)
     assert res.navps is None
+
+
+def test_published_interpolation_and_bridge():
+    from gold_valuation.published import PublishedAsset, PublishedCompany, value_published
+
+    a = PublishedAsset(name="X", npv_points=[[2000, 100], [3000, 300]])
+    # Interpolation at the midpoint.
+    assert a.npv_at(2500) == 200
+    # Linear extrapolation above the top point.
+    assert a.npv_at(3500) == 400
+
+    co = PublishedCompany(
+        name="Co", pea_discount_rate=0.05, assets=[a],
+        net_debt_musd=-50.0, nsr_royalty_musd=20.0, shares_outstanding=100_000_000,
+    )
+    res = value_published(co, _market(gold=2500), gold_price=2500)
+    # Gross 200 + net cash 50 - royalty 20 = 230 -> $2.30/share.
+    assert abs(res.equity_nav_musd - 230.0) < 1e-6
+    assert abs(res.navps - 2.30) < 1e-6

@@ -10,6 +10,14 @@ from .market import MarketData, fetch_market_data
 from .model import Asset, CompanyInputs, load_company
 from .valuation import ValuationResult, value_company
 from .sensitivity import navps_sensitivity
+from .published import (
+    PublishedAsset,
+    PublishedCompany,
+    PublishedResult,
+    load_published,
+    published_gold_sensitivity,
+    value_published,
+)
 
 __all__ = [
     "MarketData",
@@ -20,4 +28,10 @@ __all__ = [
     "ValuationResult",
     "value_company",
     "navps_sensitivity",
+    "PublishedAsset",
+    "PublishedCompany",
+    "PublishedResult",
+    "load_published",
+    "value_published",
+    "published_gold_sensitivity",
 ]

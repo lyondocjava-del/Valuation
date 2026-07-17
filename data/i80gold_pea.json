@@ -1,0 +1,66 @@
+{
+  "name": "i-80 Gold Corp (PEA published NPVs)",
+  "ticker": "IAUX",
+  "pea_discount_rate": 0.05,
+  "notes": "Per-asset after-tax NPVs (5% discount) from i-80's PEAs filed 2025-03-31, as summarized in the July 2026 corporate presentation. Corporate bridge from the Q1 2026 10-Q (balance sheet as at 2026-03-31; shares as at 2026-05-12). NPV curves are gold-price points in USD/oz -> NPV in USD millions; Mineral Point uses the $27.25/oz silver row of its published sensitivity table.",
+  "sources": [
+    "i-80 Gold July 2026 Corporate Presentation (per-project PEA NPV/IRR/AISC/capex, production, mine life)",
+    "Mineral Resource Estimate as at December 31, 2024 (resource tonnes/grades)",
+    "2026 Q1 10-Q (cash, total debt, NSR royalty, silver purchase derivative, reclamation, shares outstanding)"
+  ],
+  "net_debt_musd": -75.7,
+  "nsr_royalty_musd": 232.4,
+  "stream_musd": 48.3,
+  "other_obligations_musd": 0.0,
+  "corporate_ga_annual_musd": 30.0,
+  "corporate_ga_years": 10,
+  "reclamation_musd": 0.0,
+  "shares_outstanding": 862051146,
+  "assets": [
+    {
+      "name": "Granite Creek Underground",
+      "status": "Operating (ramp-up)",
+      "start_year": "2025",
+      "annual_koz": 59.6,
+      "mine_life_years": 8,
+      "aisc": 1597,
+      "npv_points": [[2175, 155.1], [2900, 344], [3000, 373]]
+    },
+    {
+      "name": "Archimedes Underground (Ruby Hill)",
+      "status": "Construction",
+      "start_year": "2026E",
+      "annual_koz": 101.9,
+      "mine_life_years": 10,
+      "aisc": 1893,
+      "npv_points": [[2175, 127], [2900, 581], [3000, 644]]
+    },
+    {
+      "name": "Cove Underground",
+      "status": "Technical studies & permitting",
+      "start_year": "2029E",
+      "annual_koz": 100,
+      "mine_life_years": 8,
+      "aisc": 1303,
+      "npv_points": [[2175, 271], [3000, 626]]
+    },
+    {
+      "name": "Granite Creek Open Pit",
+      "status": "Technical studies & permitting",
+      "start_year": "2030E",
+      "annual_koz": 128.6,
+      "mine_life_years": 10,
+      "aisc": 1225,
+      "npv_points": [[2175, 421.2], [2900, 866], [3000, 926]]
+    },
+    {
+      "name": "Mineral Point Open Pit (Ruby Hill)",
+      "status": "Exploration & permitting",
+      "start_year": "2031E",
+      "annual_koz": 282,
+      "mine_life_years": 16.5,
+      "aisc": 1400,
+      "npv_points": [[2000, 294], [2175, 614], [2500, 1199], [2750, 1647], [2900, 1913], [3000, 2091]]
+    }
+  ]
+}
