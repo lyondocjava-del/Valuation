@@ -60,6 +60,23 @@ def test_missing_shares_gives_no_navps():
     assert res.navps is None
 
 
+def test_irr_matches_known_stream():
+    from gold_valuation.valuation import irr
+
+    # -100 at t0 then +110 at t1 -> exactly 10% IRR.
+    assert abs(irr([-100, 110]) - 0.10) < 1e-4
+    # No sign change -> undefined.
+    assert irr([100, 110]) is None
+    # Higher inflows -> higher IRR.
+    assert irr([-100, 60, 60, 60]) > irr([-100, 40, 40, 40])
+
+
+def test_portfolio_and_asset_irr_present():
+    res = value_company(_company(), _market())
+    assert res.portfolio_irr is not None and res.portfolio_irr > 0
+    assert res.asset_values[0].irr is not None
+
+
 def test_published_interpolation_and_bridge():
     from gold_valuation.published import PublishedAsset, PublishedCompany, value_published
 

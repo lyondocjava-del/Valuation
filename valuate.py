@@ -81,11 +81,13 @@ def run_published(args) -> None:
     print("\n-- Per-asset after-tax NPV (interpolated to current gold price) --")
     arows = []
     for a, (name, npv) in zip(company.assets, result.per_asset):
+        airr = a.irr_at(result.gold_price)
         arows.append([name, a.status or "", a.start_year or "",
                       f"{a.annual_koz:,.0f} koz" if a.annual_koz else "",
-                      f"${a.aisc:,.0f}" if a.aisc else "", f"${npv:,.0f}M"])
+                      f"${a.aisc:,.0f}" if a.aisc else "", f"${npv:,.0f}M",
+                      f"{airr*100:.0f}%" if airr is not None else "n/a"])
     print(tabulate(arows, headers=["Asset", "Status", "Start", "Annual",
-                                    "AISC/oz", f"NPV @ ${result.gold_price:,.0f}"],
+                                    "AISC/oz", f"NPV @ ${result.gold_price:,.0f}", "IRR"],
                    tablefmt="github"))
 
     print("\n-- NAV bridge (gross project NAV → equity) --")
@@ -145,10 +147,11 @@ def main() -> None:
     print("\n-- Per-asset NAV (after-tax NPV) --")
     rows = [
         [av.name, f"{av.recovered_oz/1e3:,.0f} koz", f"{av.life_years} yr",
-         f"${av.npv_musd:,.0f}M"]
+         f"${av.npv_musd:,.0f}M",
+         f"{av.irr*100:.0f}%" if av.irr is not None else "n/a"]
         for av in result.asset_values
     ]
-    print(tabulate(rows, headers=["Asset", "Recoverable", "Life", "NPV"],
+    print(tabulate(rows, headers=["Asset", "Recoverable", "Life", "NPV", "IRR"],
                    tablefmt="github"))
 
     print("\n-- Company summary --")

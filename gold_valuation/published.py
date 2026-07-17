@@ -29,23 +29,35 @@ class PublishedAsset:
     aisc: float | None = None
     start_year: str | None = None
     status: str | None = None
+    # Published after-tax IRR points: [gold_price, irr_fraction].
+    irr_points: list[list[float]] | None = None
 
-    def npv_at(self, gold_price: float) -> float:
-        pts = sorted(self.npv_points, key=lambda p: p[0])
+    @staticmethod
+    def _interp(points: list[list[float]], x: float) -> float:
+        pts = sorted(points, key=lambda p: p[0])
         xs = [p[0] for p in pts]
         ys = [p[1] for p in pts]
-        if gold_price <= xs[0]:
-            # Linear extrapolation off the low end (clamped at >= 0).
+        if len(xs) == 1:
+            return ys[0]
+        if x <= xs[0]:
             slope = (ys[1] - ys[0]) / (xs[1] - xs[0])
-            return max(0.0, ys[0] + slope * (gold_price - xs[0]))
-        if gold_price >= xs[-1]:
+            return ys[0] + slope * (x - xs[0])
+        if x >= xs[-1]:
             slope = (ys[-1] - ys[-2]) / (xs[-1] - xs[-2])
-            return ys[-1] + slope * (gold_price - xs[-1])
+            return ys[-1] + slope * (x - xs[-1])
         for i in range(len(xs) - 1):
-            if xs[i] <= gold_price <= xs[i + 1]:
-                frac = (gold_price - xs[i]) / (xs[i + 1] - xs[i])
+            if xs[i] <= x <= xs[i + 1]:
+                frac = (x - xs[i]) / (xs[i + 1] - xs[i])
                 return ys[i] + frac * (ys[i + 1] - ys[i])
         return ys[-1]
+
+    def npv_at(self, gold_price: float) -> float:
+        return max(0.0, self._interp(self.npv_points, gold_price))
+
+    def irr_at(self, gold_price: float) -> float | None:
+        if not self.irr_points:
+            return None
+        return max(0.0, self._interp(self.irr_points, gold_price))
 
 
 @dataclass

@@ -8,6 +8,35 @@ from .market import MarketData
 from .model import Asset, CompanyInputs
 
 
+def irr(cashflows: list[float], lo: float = -0.9999, hi: float = 100.0) -> float | None:
+    """After-tax IRR of a cash-flow stream (index = period, cashflows[0] = t0).
+
+    Returns the rate where NPV = 0 via bisection, or ``None`` when there is no
+    sign change (e.g. all-positive or all-negative flows) so IRR is undefined.
+    """
+    if not any(cf < 0 for cf in cashflows) or not any(cf > 0 for cf in cashflows):
+        return None
+
+    def npv(r: float) -> float:
+        return sum(cf / (1.0 + r) ** t for t, cf in enumerate(cashflows))
+
+    flo, fhi = npv(lo), npv(hi)
+    if flo == 0:
+        return lo
+    if flo * fhi > 0:
+        return None
+    for _ in range(300):
+        mid = (lo + hi) / 2.0
+        fm = npv(mid)
+        if abs(fm) < 1e-7:
+            return mid
+        if flo * fm < 0:
+            hi = mid
+        else:
+            lo, flo = mid, fm
+    return (lo + hi) / 2.0
+
+
 @dataclass
 class AssetValuation:
     name: str
@@ -15,6 +44,8 @@ class AssetValuation:
     life_years: float
     npv_musd: float  # after-tax NPV of the asset (USD millions)
     undiscounted_fcf_musd: float
+    yearly_cf_musd: list[float] = field(default_factory=list)  # unrisked, t0..N
+    irr: float | None = None  # unrisked after-tax IRR
 
 
 @dataclass
@@ -33,6 +64,7 @@ class ValuationResult:
     ev_per_oz: float | None = None
     p_nav: float | None = None
     total_resource_oz: float = 0.0
+    portfolio_irr: float | None = None  # firm-level after-tax IRR (unrisked)
 
     def summary_rows(self) -> list[tuple[str, str]]:
         def money(x):
@@ -44,6 +76,10 @@ class ValuationResult:
             ("Discount rate", f"{self.discount_rate*100:.1f}%"),
             ("Gross asset NAV", money(self.gross_asset_nav_musd)),
             ("Corporate NAV", money(self.corporate_nav_musd)),
+            (
+                "Portfolio IRR (after-tax)",
+                f"{self.portfolio_irr*100:.1f}%" if self.portfolio_irr is not None else "n/a",
+            ),
             ("Fully diluted shares", f"{self.shares:,.0f}" if self.shares else "n/a"),
             ("NAV per share", f"${self.navps:,.2f}" if self.navps is not None else "n/a"),
             ("Market cap", money(self.market_cap_musd)),
@@ -72,16 +108,16 @@ def _value_asset(asset: Asset, gold_price: float, disc: float, tax: float,
 
     margin_per_oz = gold_price * asset.payability - asset.aisc  # USD/oz
 
-    npv = 0.0
-    undiscounted = 0.0
+    # Build an unrisked yearly cash-flow vector (index = year, 0 = valuation date).
+    max_year = asset.start_year + life_cap + 1
+    cf = [0.0] * (max_year + 1)
+
+    # Pre-production capex spread over the build period (years 1..start_year).
+    for by in range(1, asset.start_year + 1):
+        cf[by] -= asset.initial_capex_musd / asset.start_year
+
     remaining = recovered
     year = asset.start_year
-
-    # Pre-production capex, discounted over the build period (years 1..start_year).
-    for by in range(1, asset.start_year + 1):
-        npv -= (asset.initial_capex_musd / asset.start_year) / (1 + rate) ** by
-    undiscounted -= asset.initial_capex_musd
-
     produced_years = 0
     while remaining > 1e-6 and produced_years < life_cap:
         # Ramp: fraction of steady-state in the first ``ramp_years``.
@@ -90,19 +126,22 @@ def _value_asset(asset: Asset, gold_price: float, disc: float, tax: float,
         remaining -= oz
         pretax = oz * margin_per_oz / 1e6  # USD millions
         after_tax = pretax * (1 - tax) if pretax > 0 else pretax
-        npv += after_tax / (1 + rate) ** year
-        undiscounted += after_tax
+        cf[year] += after_tax
         year += 1
         produced_years += 1
 
-    npv *= asset.risk_factor
-    undiscounted *= asset.risk_factor
+    # Discounted NPV from the same stream, then probability-weight.
+    npv = sum(c / (1 + rate) ** t for t, c in enumerate(cf)) * asset.risk_factor
+    undiscounted = sum(cf) * asset.risk_factor
+
     return AssetValuation(
         name=asset.name,
         recovered_oz=recovered,
         life_years=round(life, 1),
         npv_musd=npv,
         undiscounted_fcf_musd=undiscounted,
+        yearly_cf_musd=cf,
+        irr=irr(cf),
     )
 
 
@@ -129,6 +168,17 @@ def value_company(
         for a in company.assets
     ]
     gross = sum(av.npv_musd for av in asset_vals)
+
+    # Firm-level (portfolio) IRR from the aggregated unrisked project cash flows,
+    # net of corporate G&A. Independent of the discount rate.
+    horizon = max((len(av.yearly_cf_musd) for av in asset_vals), default=0)
+    portfolio_cf = [0.0] * horizon
+    for av in asset_vals:
+        for t, c in enumerate(av.yearly_cf_musd):
+            portfolio_cf[t] += c
+    for y in range(1, min(company.ga_years, horizon - 1) + 1):
+        portfolio_cf[y] -= company.annual_ga_musd
+    portfolio_irr = irr(portfolio_cf)
 
     # Corporate deductions.
     ga_pv = 0.0
@@ -178,5 +228,6 @@ def value_company(
         ev_per_oz=ev_per_oz,
         p_nav=p_nav,
         total_resource_oz=total_resource_oz,
+        portfolio_irr=portfolio_irr,
     )
     return result
