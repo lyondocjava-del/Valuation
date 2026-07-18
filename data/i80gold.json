@@ -1,0 +1,81 @@
+{
+  "name": "i-80 Gold Corp (bottom-up DCF)",
+  "ticker": "IAUX",
+  "notes": "Bottom-up DCF inputs from i-80's PEAs (filed 2025-03-31, per July 2026 corporate presentation) and Q1 2026 10-Q balance sheet (2026-03-31; shares 2026-05-12). recoverable_koz = life-of-mine gold recovered; annual_koz = avg annual production post-ramp; aisc, capex, recoveries per PEA. NOTE: this engine values GOLD only. Mineral Point is silver-rich, so its figures here are gold-equivalent approximations (~160koz/yr gold vs 282koz AuEq incl. silver) and understate that asset; the published-NPV path (data/i80gold_pea.json) captures its full AuEq economics correctly. Lone Tree open pit is excluded (not in the current development plan).",
+  "discount_rate": 0.05,
+  "tax_rate": 0.25,
+  "life_cap_years": 25,
+  "net_debt_musd": -75.7,
+  "other_obligations_musd": 280.7,
+  "reclamation_musd": 61.5,
+  "annual_ga_musd": 30.0,
+  "ga_years": 10,
+  "shares_outstanding": 862051146,
+  "assets": [
+    {
+      "name": "Granite Creek Underground",
+      "recoverable_koz": 417.5,
+      "resource_koz_insitu": 261,
+      "annual_koz": 59.6,
+      "ramp_years": 2,
+      "recovery": 0.78,
+      "aisc": 1597,
+      "initial_capex_musd": 105,
+      "start_year": 1,
+      "discount_rate": 0.05,
+      "risk_factor": 0.95
+    },
+    {
+      "name": "Archimedes Underground (Ruby Hill)",
+      "recoverable_koz": 928,
+      "resource_koz_insitu": 436,
+      "annual_koz": 101.9,
+      "ramp_years": 2,
+      "recovery": 0.90,
+      "aisc": 1893,
+      "initial_capex_musd": 49,
+      "start_year": 1,
+      "discount_rate": 0.05,
+      "risk_factor": 0.85
+    },
+    {
+      "name": "Cove Underground",
+      "recoverable_koz": 740,
+      "resource_koz_insitu": 310,
+      "annual_koz": 100,
+      "ramp_years": 2,
+      "recovery": 0.83,
+      "aisc": 1303,
+      "initial_capex_musd": 157,
+      "start_year": 3,
+      "discount_rate": 0.05,
+      "risk_factor": 0.7
+    },
+    {
+      "name": "Granite Creek Open Pit",
+      "recoverable_koz": 1120,
+      "resource_koz_insitu": 1435,
+      "annual_koz": 128.6,
+      "ramp_years": 2,
+      "recovery": 0.866,
+      "aisc": 1225,
+      "initial_capex_musd": 274.4,
+      "start_year": 4,
+      "discount_rate": 0.05,
+      "risk_factor": 0.6
+    },
+    {
+      "name": "Mineral Point Open Pit (Ruby Hill, AuEq approx)",
+      "recoverable_koz": 2633,
+      "resource_koz_insitu": 3376,
+      "annual_koz": 160,
+      "ramp_years": 3,
+      "recovery": 0.78,
+      "aisc": 1400,
+      "initial_capex_musd": 708,
+      "start_year": 5,
+      "discount_rate": 0.05,
+      "risk_factor": 0.45
+    }
+  ]
+}
